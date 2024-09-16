@@ -175,3 +175,57 @@ describe("debounce and throttle", () => {
     });
   });
 });
+
+describe("debounce and throttle new features", () => {
+  [debounce, throttle].forEach((func) => {
+    const funcName = func.name;
+    const isDebounce = func === debounce;
+
+    it(`${funcName} should support callImmediately option`, (done) => {
+      let callCount = 0;
+      const funced = func(
+        () => {
+          callCount++;
+        },
+        32,
+        { callImmediately: true }
+      );
+
+      expect(callCount).toBe(1); // Should be called immediately
+
+      funced();
+      funced();
+
+      setTimeout(() => {
+        expect(callCount).toBe(isDebounce ? 2 : 3);
+        done();
+      }, 64);
+    });
+
+    it(`${funcName} should respect maxCalls option`, (done) => {
+      let callCount = 0;
+      const funced = func(
+        () => {
+          callCount++;
+        },
+        32,
+        { maxCalls: 2 }
+      );
+
+      funced();
+      funced();
+      funced();
+      funced();
+
+      setTimeout(() => {
+        expect(callCount).toBe(isDebounce ? 1 : 2);
+        
+        funced();
+        setTimeout(() => {
+          expect(callCount).toBe(2); // Should not exceed maxCalls
+          done();
+        }, 64);
+      }, 64);
+    });
+  });
+});

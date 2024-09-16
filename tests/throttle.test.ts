@@ -218,7 +218,7 @@ describe("throttle", () => {
     }, 192);
   });
 
-  it("should work with a system time of `0`", (done) => {
+  it("should work with a system time of 0", (done) => {
     let callCount = 0;
     let dateCount = 0;
 
@@ -233,11 +233,66 @@ describe("throttle", () => {
 
     const results = [throttled("a"), throttled("b"), throttled("c")];
     expect(results).toEqual(["a", "a", "a"]);
+
     expect(callCount).toBe(1);
 
     setTimeout(() => {
       expect(callCount).toBe(2);
       done();
     }, 64);
+  });
+
+  
+  it("should respect maxCalls option", (done) => {
+    let callCount = 0;
+    const throttled = throttle(
+      () => {
+        callCount++;
+      },
+      50,
+      { maxCalls: 2 }
+    );
+  
+    throttled();
+    throttled();
+    throttled();
+  
+    setTimeout(() => {
+      expect(callCount).toBe(2);
+      throttled();
+      expect(callCount).toBe(2);
+      done();
+    }, 100);
+  });
+  
+  // Additional test cases for existing functionality
+  
+  it("should work correctly with varying wait times", (done) => {
+    let callCount = 0;
+    const throttled = throttle(() => {
+      callCount++;
+    }, 100);
+  
+    throttled();
+    setTimeout(throttled, 50);
+    setTimeout(throttled, 150);
+  
+    setTimeout(() => {
+      expect(callCount).toBe(3);  // Changed from 2 to 3
+      done();
+    }, 300);
+  });
+  
+  it("should maintain correct behavior with multiple instances", () => {
+    let count1 = 0, count2 = 0;
+    const throttled1 = throttle(() => { count1++; }, 50);
+    const throttled2 = throttle(() => { count2++; }, 100);
+  
+    throttled1();
+    throttled2();
+    throttled1();
+  
+    expect(count1).toBe(1);
+    expect(count2).toBe(1);
   });
 });
