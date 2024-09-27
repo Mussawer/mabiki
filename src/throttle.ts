@@ -1,10 +1,11 @@
-import type { DebouncedFunc } from "./debounce";
-import { debounce } from "./debounce";
+import { debounce, DebouncedFunc } from "./debounce";
 import { isObject } from "./isObject";
 
 type ThrottleOptions = {
   leading?: boolean;
   trailing?: boolean;
+  callImmediately?: boolean; // If true, calls the function immediately before starting the throttle process
+  maxCalls?: number; // Limits the total number of times the throttled function can be called
 };
 
 /**
@@ -61,17 +62,23 @@ export function throttle<T extends (...args: any) => any>(
   if (typeof func !== "function") {
     throw new TypeError("Expected a function");
   }
-
   let leading = true;
   let trailing = true;
+  let callImmediately = false; // Flag to determine if the function should be called immediately
+  let maxCalls: number | undefined; // Maximum number of times the function can be called
+
   if (isObject(options)) {
     leading = "leading" in options ? !!options.leading : leading;
     trailing = "trailing" in options ? !!options.trailing : trailing;
+    callImmediately = !!options.callImmediately; // Set callImmediately based on options
+    maxCalls = options.maxCalls; // Set maxCalls based on options
   }
 
   return debounce(func, wait, {
     leading,
     trailing,
     maxWait: wait,
+    callImmediately, // Pass callImmediately option to debounce function
+    maxCalls, // Pass maxCalls option to debounce function
   });
 }
