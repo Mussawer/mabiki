@@ -296,4 +296,106 @@ describe("debounce", () => {
       done();
     }, 64);
   });
+
+  // Tests if debounce calls the function immediately when callImmediately option is true
+  it("should support callImmediately option", (done) => {
+    let callCount = 0;
+    const debounced = debounce(
+      () => {
+        callCount++;
+      },
+      100,
+      { callImmediately: true }
+    );
+  
+    debounced();
+    expect(callCount).toBe(1);
+  
+    setTimeout(() => {
+      expect(callCount).toBe(1);
+      debounced();
+      expect(callCount).toBe(1);
+      setTimeout(() => {
+        expect(callCount).toBe(2);
+        done();
+      }, 150);
+    }, 50);
+  });
+  
+  // Verifies if debounce respects the maxCalls option by limiting the number of function invocations
+  it("should respect maxCalls option", (done) => {
+    let callCount = 0;
+    const debounced = debounce(
+      () => {
+        callCount++;
+      },
+      50,
+      { maxCalls: 2 }
+    );
+  
+    debounced();
+    debounced();
+    debounced();
+  
+    setTimeout(() => {
+      expect(callCount).toBe(1);
+      debounced();
+      setTimeout(() => {
+        expect(callCount).toBe(2);
+        debounced();
+        setTimeout(() => {
+          expect(callCount).toBe(2);
+          done();
+        }, 100);
+      }, 100);
+    }, 100);
+  });
+  
+  // Checks if debounce behaves correctly with different time intervals between function calls
+  it("should work correctly with varying wait times", (done) => {
+    let callCount = 0;
+    const debounced = debounce(() => {
+      callCount++;
+    }, 100);
+  
+    debounced();
+    setTimeout(debounced, 50);
+    setTimeout(debounced, 200);  
+  
+    setTimeout(() => {
+      expect(callCount).toBe(2);
+      done();
+    }, 400);  
+  });
+  
+  // Ensures multiple debounce instances function independently without interfering with each other
+  it("should maintain correct behavior with multiple instances", () => {
+    let count1 = 0, count2 = 0;
+    const debounced1 = debounce(() => { count1++; }, 50);
+    const debounced2 = debounce(() => { count2++; }, 100);
+  
+    debounced1();
+    debounced2();
+    debounced1();
+  
+    expect(count1).toBe(0);
+    expect(count2).toBe(0);
+  });
+  
+  // Verifies that debounce works properly when applied to asynchronous functions
+  it("should work correctly with async functions", (done) => {
+    let callCount = 0;
+    const debounced = debounce(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      callCount++;
+    }, 100);
+  
+    debounced();
+    debounced();
+  
+    setTimeout(() => {
+      expect(callCount).toBe(1);
+      done();
+    }, 200);
+  });
 });
